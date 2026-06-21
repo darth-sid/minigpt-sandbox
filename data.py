@@ -58,4 +58,3 @@ def load_data(fname: str) -> tuple[list[int], list[int], Vocab]:
 
 
 train, test, vocab = load_data("input.txt")
-print(train.shape, test.shape)
