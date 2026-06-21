@@ -43,7 +43,7 @@ def get_batch(
     return x, y
 
 
-def load_data(fname: str) -> tuple[list[int], list[int], Vocab]:
+def load_data(fname: str) -> tuple[torch.Tensor, torch.Tensor, Vocab]:
     with open(fname, "r") as fdata:
         data = fdata.read()
 
