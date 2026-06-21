@@ -141,12 +141,14 @@ class TransformerBlock(torch.nn.Module):
         super().__init__()
         self._attention = MultiHeadAttention(d_embed, n_head)
         self._norm1 = torch.nn.LayerNorm(d_embed)
+        self._dropout1 = torch.nn.Dropout(0.2)
         self._ffn = FFN(d_embed, dilation * d_embed)
+        self._dropout2 = torch.nn.Dropout(0.2)
         self._norm2 = torch.nn.LayerNorm(d_embed)
 
     def forward(self, x, mask=None):
-        x = self._attention(self._norm1(x), mask) + x
-        x = self._ffn(self._norm2(x)) + x
+        x = self._dropout1(self._attention(self._norm1(x), mask)) + x
+        x = self._dropout2(self._ffn(self._norm2(x))) + x
         return x
 
 
@@ -162,6 +164,7 @@ class GPTLM(LM):
         super().__init__("GPT", context_size)
         self._embed = torch.nn.Embedding(vocab_size, d_embed)
         self._pos_embed = torch.nn.Embedding(context_size, d_embed)
+        self._dropout = torch.nn.Dropout(0.2)
         self._blocks = torch.nn.ModuleList(
             [TransformerBlock(d_embed, n_head) for _ in range(n_block)]
         )
@@ -173,7 +176,7 @@ class GPTLM(LM):
         positions = torch.arange(x.shape[1], device=x.device)
         pos_embeddings = self._pos_embed(positions)  # (B, T, d_embed)
         embeddings = self._embed(x)  # (B, T, d_embed)
-        x = embeddings + pos_embeddings
+        x = self._dropout(embeddings + pos_embeddings)
 
         for block in self._blocks:
             x = block(x, mask)
