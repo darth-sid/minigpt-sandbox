@@ -1,6 +1,11 @@
 # pyright: reportPrivateImportUsage=false
 from data import load_data, get_batch, decode
-from model import MultiHeadCausalAttentionLM, NaiveLM, SingleHeadCausalAttentionLM
+from model import (
+    MultiHeadCausalAttentionLM,
+    NaiveLM,
+    SingleHeadCausalAttentionLM,
+    GPTLM,
+)
 import torch
 from tqdm import tqdm, trange
 
@@ -29,8 +34,9 @@ models = [
     NaiveLM(len(vocab)),
     SingleHeadCausalAttentionLM(len(vocab), 32, 8),
     MultiHeadCausalAttentionLM(len(vocab), 32, 4, 8),
+    GPTLM(len(vocab), 32, 4, 1, 8),
 ]
 
 for m in models:
-    train_model(train, test, m, 10000, 32, 8, 1e-2, print_freq=500)
+    train_model(train, test, m, 5000, 32, 8, 1e-2)
     print(decode(m.predict(torch.zeros((1, 1), dtype=torch.long))[0].tolist(), vocab))
