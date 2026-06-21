@@ -50,14 +50,20 @@ class SingleHeadCausalAttention(LM):
     def __init__(self, vocab_size: int, d_embed: int, context_size: int):
         super().__init__(context_size)
         self._embed = torch.nn.Embedding(vocab_size, d_embed)
+        self._pos_embed = torch.nn.Embedding(context_size, d_embed)
         self._attention = AttentionHead(d_embed, d_embed)
         self._unembed = torch.nn.Linear(d_embed, vocab_size)
 
     def forward(self, inputs, targets=None):  # (B, T), (B, T)
         _, T = inputs.shape
         mask = torch.tril(torch.ones(T, T, device=inputs.device))
+
+        positions = torch.arange(T)
+        pos_embeddings = self._pos_embed(positions)  # (B, T, d_embed)
         embeddings = self._embed(inputs)  # (B, T, d_embed)
-        att_out = self._attention(embeddings, mask)  # (B, T, d_embed)
+        x = embeddings + pos_embeddings
+
+        att_out = self._attention(x, mask)  # (B, T, d_embed)
         pred = self._unembed(att_out)  # (B, T, vocab)
         loss = None
         if targets is not None:

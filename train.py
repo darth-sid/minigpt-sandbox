@@ -23,5 +23,5 @@ train, test, vocab = load_data("input.txt")
 models = [Naive(len(vocab)), SingleHeadCausalAttention(len(vocab), 32, 8)]
 
 for m in models:
-    train_model(train, m, 5000, 32, 8, 1e-2, print_freq=500)
+    train_model(train, m, 10000, 32, 8, 1e-2, print_freq=500)
     print(decode(m.predict(torch.zeros((1, 1), dtype=torch.long))[0].tolist(), vocab))
