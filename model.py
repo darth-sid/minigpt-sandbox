@@ -4,9 +4,10 @@ from torch.nn.functional import cross_entropy, softmax
 
 
 class LM(torch.nn.Module):
-    def __init__(self, context_size: int):
+    def __init__(self, name: str, context_size: int):
         super().__init__()
         self._context_size = context_size
+        self.name = name
 
     @torch.no_grad()
     def predict(self, inputs, max_new_tokens=100):
@@ -33,7 +34,7 @@ class LM(torch.nn.Module):
 
 class NaiveLM(LM):
     def __init__(self, vocab_size: int):
-        super().__init__(1)
+        super().__init__("Naive", 1)
         self._table = torch.nn.Embedding(vocab_size, vocab_size)
 
     def forward(self, x, targets=None):
@@ -67,7 +68,7 @@ class AttentionHead(torch.nn.Module):
 
 class SingleHeadCausalAttentionLM(LM):
     def __init__(self, vocab_size: int, d_embed: int, context_size: int):
-        super().__init__(context_size)
+        super().__init__("SingleHead", context_size)
         self._embed = torch.nn.Embedding(vocab_size, d_embed)
         self._pos_embed = torch.nn.Embedding(context_size, d_embed)
         self._attention = AttentionHead(d_embed, d_embed)
@@ -103,7 +104,7 @@ class MultiHeadAttention(torch.nn.Module):
 
 class MultiHeadCausalAttentionLM(LM):
     def __init__(self, vocab_size: int, d_embed: int, n_head: int, context_size: int):
-        super().__init__(context_size)
+        super().__init__("MultiHead", context_size)
         self._embed = torch.nn.Embedding(vocab_size, d_embed)
         self._pos_embed = torch.nn.Embedding(context_size, d_embed)
         self._attention = MultiHeadAttention(d_embed, n_head)
@@ -158,7 +159,7 @@ class GPTLM(LM):
         n_block: int,
         context_size: int,
     ):
-        super().__init__(context_size)
+        super().__init__("GPT", context_size)
         self._embed = torch.nn.Embedding(vocab_size, d_embed)
         self._pos_embed = torch.nn.Embedding(context_size, d_embed)
         self._blocks = torch.nn.ModuleList(
